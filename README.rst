@@ -89,7 +89,7 @@ Installation
 
   $ shiva-server
 
-* Go to ``http://127.0.0.1:9002/<resource>`` (see `Resources`_).
+* Point your browser to a Resource, like: http://127.0.0.1:9002/artists (See `Resources`_)
 
 
 -----------------
@@ -254,7 +254,7 @@ Fields
 * ``other_artists``: A list with artists that are not in Shiva's database.
 
   + ``mbid``: MusicBrainz.org ID.
-  + ``facebook_tour_dates_ur``l: URI to BandsInTown's Facebook app for this
+  + ``facebook_tour_dates_url``: URI to BandsInTown's Facebook app for this
     artist.
   + ``image_url``: URI to an image of the artist.
   + ``name``: Name of the artist.
