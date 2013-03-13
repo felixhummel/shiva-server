@@ -53,7 +53,7 @@ Installation
 .. code:: sh
 
     $ virtualenv .
-    $ souce bin/activate
+    $ source bin/activate
 
 * Install::
 
@@ -81,7 +81,7 @@ Installation
 
 .. code:: sh
 
-      $ python indexer.py
+  $ shiva-indexer
 
 * Run the server::
 
