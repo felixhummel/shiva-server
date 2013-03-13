@@ -90,26 +90,6 @@ Installation
 * Point your browser to a Resource, like: http://127.0.0.1:9002/artists (See `Resources`_)
 
 
-----------------
-Using virtualenv
-----------------
-
-Usually is a good idea to use virtualenv to keep each project isolated and
-avoid dependency conflicts. To do so you should follow the following steps
-after cloning the source and before installing the requirements:
-
-* Create the virtual environment::
-
-  $ virtualenv venv
-
-* Activate it::
-
-  $ source ./venv/bin/activate
-
-Then continue with the installation process as described previously.
->>>>>>> 0b10565... /artists after installer (nicer than 404 on click)
-
-
 -----------------
 Indexer arguments
 -----------------
