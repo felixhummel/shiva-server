@@ -5,6 +5,8 @@ from datetime import datetime
 import os
 import sys
 
+import pylast
+
 from shiva import models as m
 from shiva.app import app, db
 from shiva.utils import ID3Manager
@@ -46,8 +48,6 @@ class Indexer(object):
         self.albums = {}
 
         if self.use_lastfm:
-            import pylast
-
             api_key = config['LASTFM_API_KEY']
             self.lastfm = pylast.LastFMNetwork(api_key=api_key)
 
@@ -72,17 +72,21 @@ class Indexer(object):
 
         return artist
 
-    def get_album(self, name):
+    def get_album(self, name, artist):
         if name in self.albums:
             return self.albums[name]
         else:
             release_year = self.get_release_year()
             cover = None
             if self.use_lastfm:
-                _artist = self.lastfm.get_artist(artist.name)
-                _album = self.lastfm.get_album(_artist, id3r.album)
-                release_year = self.get_release_year(_album)
-                cover = _album.get_cover_image(size=pylast.COVER_EXTRA_LARGE)
+                try:
+                    _artist = self.lastfm.get_artist(artist.name)
+                    _album = self.lastfm.get_album(_artist, name)
+                    release_year = self.get_release_year(_album)
+                    cover = _album.get_cover_image(size=pylast.COVER_EXTRA_LARGE)
+                except pylast.WSError, error:
+                    #TODO: proper log error
+                    print error
 
             album = m.Album(name=name, year=release_year, cover=cover)
             self.session.add(album)
@@ -128,7 +132,7 @@ class Indexer(object):
         id3r = self.get_id3_reader()
 
         artist = self.get_artist(id3r.artist)
-        album = self.get_album(id3r.album)
+        album = self.get_album(id3r.album, artist)
 
         if artist is not None and artist not in album.artists:
             album.artists.append(artist)
