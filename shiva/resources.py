@@ -3,15 +3,16 @@ from datetime import datetime
 import logging
 import urllib2
 
-from flask import request, Response, current_app as app, g
+from flask import request, Response, redirect, current_app as app, g
 from flask.ext.restful import abort, fields, marshal, Resource
 from lxml import etree
 import requests
 
+from shiva.converter import get_converter
 from shiva.fields import (Boolean, DownloadURI, ForeignKeyField, InstanceURI,
-                          ManyToManyField, StreamURI)
-from shiva.models import Artist, Album, Track, Lyrics
+                          ManyToManyField, TrackFiles)
 from shiva.lyrics import get_lyrics
+from shiva.models import Artist, Album, Track, Lyrics
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +24,7 @@ DEFAULT_ARTIST_IMAGE = 'http://www.super8duncan.com/images/band_silhouette.jpg'
 class JSONResponse(Response):
     """
     A subclass of flask.Response that sets the Content-Type header by default
-    to "application/json"
+    to "application/json".
 
     """
 
@@ -40,7 +41,7 @@ class JSONResponse(Response):
 
 
 def full_tree():
-    """ Checks the GET parameters to see if a full tree was requested """
+    """ Checks the GET parameters to see if a full tree was requested. """
 
     arg = request.args.get('fulltree')
 
@@ -82,7 +83,6 @@ class ArtistResource(Resource):
     """
     """
 
-    route_base = 'artists'
     resource_fields = {
         'id': fields.Integer(attribute='pk'),
         'name': fields.String,
@@ -156,7 +156,6 @@ class AlbumResource(Resource):
     """
     """
 
-    route_base = 'albums'
     resource_fields = {
         'id': fields.Integer(attribute='pk'),
         'name': fields.String,
@@ -242,11 +241,10 @@ class TracksResource(Resource):
     """
     """
 
-    route_base = 'tracks'
     resource_fields = {
         'id': fields.Integer(attribute='pk'),
         'uri': InstanceURI('track'),
-        'stream_uri': StreamURI,
+        'files': TrackFiles,
         'bitrate': fields.Integer,
         'length': fields.Integer,
         'title': fields.String,
@@ -405,6 +403,30 @@ class LyricsResource(Resource):
         g.db.session.commit()
 
         return JSONResponse(200)
+
+
+class ConvertResource(Resource):
+    """
+    """
+
+    def get(self, track_id):
+        track = Track.query.get(track_id)
+        if not track:
+            return JSONResponse(404)
+
+        converter = get_converter()(track.path)
+        mimename = request.args.get('mimetype')
+
+        if mimename:
+            mimetype = converter.get_mimetypes().get(mimename)
+            if not converter.exists_for_mimetype(mimetype):
+                converter.convert_to(mimetype)
+        else:
+            converter.convert_all()
+
+        uri = converter.get_dest_uri(mimetype)
+
+        return JSONResponse(status=301, headers={'Location': uri})
 
 
 class ShowsResource(Resource):
