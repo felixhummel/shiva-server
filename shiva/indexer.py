@@ -1,4 +1,18 @@
 # -*- coding: utf-8 -*-
+"""Music indexer for the Shiva-Server API.
+Index your music collection and (optionally) retrieve album covers and artist
+pictures from Last.FM.
+
+Usage:
+    shiva-indexer [-h] [-v] [-q] [--lastfm] [--nometadata]
+
+Options:
+    -h, --help    Show this help message and exit
+    --lastfm      Retrieve artist and album covers from Last.FM API.
+    --nometadata  Don't read file's metadata when indexing.
+    -v --verbose  Show debugging messages about the progress.
+    -q --quiet    Suppress warnings.
+"""
 # K-Pg
 import logging
 from datetime import datetime
@@ -13,33 +27,13 @@ from shiva.utils import ID3Manager
 
 q = db.session.query
 
-USAGE = """Usage: %s [-h] [--lastfm] [--nometadata]
-
-Music indexer for the Shiva-Server API.
-
-Index your music collection and (optionally) retrieve album covers and artist
-pictures from Last.FM.
-
-optional arguments:
-    -h, --help    Show this help message and exit
-    --lastfm      Retrieve artist and album covers from Last.FM API.
-    --nometadata  Don't read file's metadata when indexing.
-    -v, --verbose Show debugging messages about the progress.
-""" % sys.argv[0]
-
-if '--help' in sys.argv or '-h' in sys.argv:
-    print(USAGE)
-    sys.exit(0)
-
-VERBOSE = False
-if '--verbose' in sys.argv or '-v' in sys.argv:
-    VERBOSE = True
-
 class Indexer(object):
-    def __init__(self, config=None, use_lastfm=False, no_metadata=False):
+    def __init__(self, config=None, use_lastfm=False, no_metadata=False, verbose=False, quiet=False):
         self.config = config
         self.use_lastfm = use_lastfm
         self.no_metadata = no_metadata
+        self.verbose = verbose
+        self.quiet = quiet
 
         self.session = db.session
         self.media_dirs = config.get('MEDIA_DIRS', [])
@@ -117,7 +111,8 @@ class Indexer(object):
 
         full_path = self.file_path.decode('utf-8')
 
-        print(self.file_path)
+        if self.verbose:
+            print(self.file_path)
 
         track = m.Track(full_path)
         if self.no_metadata:
@@ -160,12 +155,12 @@ class Indexer(object):
 
         ext = self.file_path[self.file_path.rfind('.') + 1:]
         if ext not in self.config.get('ACCEPTED_FORMATS', []):
-            if (VERBOSE):
+            if not self.quiet:
                 print(self.file_path + "is not in ACCEPTED_FORMATS")
             return False
 
         if not self.get_id3_reader().is_valid():
-            if (VERBOSE):
+            if not self.quiet:
                 print(self.file_path + "fails id3 reader")
             return False
 
@@ -201,18 +196,21 @@ class Indexer(object):
 
 
 def main():
-    use_lastfm = '--lastfm' in sys.argv
-    no_metadata = '--nometadata' in sys.argv
+    from docopt import docopt
+    arguments = docopt(__doc__)
+
+    use_lastfm = arguments['--lastfm']
+    no_metadata = arguments['--nometadata']
 
     if no_metadata:
         use_lastfm = False
 
     if use_lastfm and not app.config.get('LASTFM_API_KEY'):
-        print('ERROR: You need a Last.FM API key if you set the --lastfm '
+        sys.stderr.write('ERROR: You need a Last.FM API key if you set the --lastfm '
               'flag.\n')
         sys.exit(1)
 
-    lola = Indexer(app.config, use_lastfm=use_lastfm, no_metadata=no_metadata)
+    lola = Indexer(app.config, use_lastfm=use_lastfm, no_metadata=no_metadata, verbose=arguments['--verbose'], quiet=arguments['--quiet'])
     lola.run()
 
     # Petit performance hack: Every track will be added to the session but they
