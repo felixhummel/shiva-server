@@ -49,8 +49,8 @@ Installation
 
 * Create and activate your virtalenv (highly recommended)::
 
-    $ virtualenv .
-    $ source bin/activate
+    $ virtualenv _venv
+    $ source _venv/bin/activate
 
 * Install::
 
