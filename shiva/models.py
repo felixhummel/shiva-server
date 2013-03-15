@@ -3,7 +3,8 @@ import os
 
 from flask.ext.sqlalchemy import SQLAlchemy
 
-from shiva.utils import slugify as do_slug, randstr, ID3Manager
+from shiva import utils
+from shiva.utils import slugify as do_slug, randstr
 
 db = SQLAlchemy()
 
@@ -119,19 +120,15 @@ class Track(db.Model):
                           nullable=True)
 
     def __init__(self, path):
-        if type(path) not in (unicode, str, file):
+        if not isinstance(path, unicode):
             raise ValueError('Invalid parameter for Track. Path or File '
                              'expected, got %s' % type(path))
 
-        _path = path
-        if isinstance(path, file):
-            _path = path.name
-
-        self.set_path(_path)
-        self._id3r = None
-        self.extension = 'mp3'  # default extension
+        self.path = path
+        self.extension = utils.ext(path)
 
     def __setattr__(self, attr, value):
+        # when setting title, set slug too
         if attr == 'title':
             super(Track, self).__setattr__('slug', slugify(self, 'title'))
 
@@ -140,26 +137,7 @@ class Track(db.Model):
     def get_path(self):
         if self.path:
             return self.path.encode('utf-8')
-
         return None
-
-    def set_path(self, path):
-        if path != self.get_path():
-            self.path = path
-            if os.path.exists(self.get_path()):
-                self.file_size = self.get_id3_reader().size
-                self.bitrate = self.get_id3_reader().bitrate
-                self.length = self.get_id3_reader().length
-                self.number = self.get_id3_reader().track_number
-                self.title = self.get_id3_reader().title
-
-    def get_id3_reader(self):
-        """Returns an object with the ID3 info reader.
-        """
-        if not getattr(self, '_id3r', None):
-            self._id3r = ID3Manager(self.get_path())
-
-        return self._id3r
 
     def __repr__(self):
         return "<Track ('%s')>" % self.title
