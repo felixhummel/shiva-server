@@ -11,3 +11,7 @@
 shiva.egg-info/
 _venv
 
+# testing
+.coverage
+doc/coverage/
+
