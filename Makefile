@@ -1,4 +1,4 @@
-.PHONY: default tests coverage
+.PHONY: default tests coverage dropcreate
 
 default: tests
 
@@ -11,4 +11,8 @@ debug:
 coverage: tests
 	python -mwebbrowser -t doc/coverage/index.html
 
+
+dropcreate:
+	rm -f shiva/shiva.de
+	python -c "from shiva.app import db; db.create_all()"
 
