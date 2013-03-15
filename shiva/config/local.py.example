@@ -30,5 +30,6 @@ MIMETYPES = {
         },
     },
 }
+ACCEPTED_FORMATS = ['mp3', 'ogg']
 # Here you can redefine anything you set in your settings.project file, like
 # the database URI.
