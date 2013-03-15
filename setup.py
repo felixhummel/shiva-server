@@ -19,7 +19,8 @@ setup(name='shiva',
           'requests==1.0.4',
           'translitcodec==0.3',
           'pyLast==0.5.11',
-          'lxml==3.1beta1'
+          'lxml==3.1beta1',
+          'docopt==0.6.1'
       ],
       entry_points={
           'console_scripts': [
