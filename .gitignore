@@ -4,6 +4,9 @@
 *~
 .*.sw*
 
+# IDE
+.idea/
+
 # virtualenv
 shiva.egg-info/
 _venv
