@@ -13,6 +13,6 @@ coverage: tests
 
 
 dropcreate:
-	rm -f shiva/shiva.de
+	rm -f shiva/shiva.db
 	python -c "from shiva.app import db; db.create_all()"
 
