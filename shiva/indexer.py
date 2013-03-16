@@ -16,6 +16,7 @@ Options:
 # K-Pg
 import logging
 from datetime import datetime
+import re
 import sys
 
 import pylast
@@ -26,6 +27,8 @@ from shiva.tagger import TaggedFiles
 
 query = db.session.query
 
+
+RE_year = re.compile(r'.*(\d\d\d\d).*')
 
 class Indexer(object):
     artists = {}
@@ -89,13 +92,24 @@ class Indexer(object):
         return album
 
     def get_release_year(self, lastfm_album=None, tagged_file=None):
+        result = None
         if self.use_lastfm and lastfm_album:
             _date = lastfm_album.get_release_date()
             try:
-                return datetime.strptime(_date, '%d %b %Y, %H:%M').year
+                result = datetime.strptime(_date, '%d %b %Y, %H:%M').year
             except ValueError:
                 pass
-        return tagged_file.release_year
+
+        tf_yr = tagged_file.release_year
+        if tf_yr is not None:
+            if isinstance(tf_yr, int) and tf_yr < 10000:
+                result = tf_yr
+            elif isinstance(tagged_file.release_year, str):
+                m = RE_year.match(tagged_file.release_year)
+                if m:
+                    yr = m.groups()[0]
+                    result = int(yr)
+        return result
 
     def save(self, unicode_path, tagged_file):
         """
@@ -117,6 +131,8 @@ class Indexer(object):
             self.session.add(track)
             return True
 
+        # here we have a perfectly tagged file
+        track.title = tagged_file.title
         artist_model = self.get_artist(tagged_file.artist)
         album_model = self.get_album(tagged_file.album, artist_model, tagged_file)
 
