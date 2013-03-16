@@ -22,7 +22,7 @@ def slugify(model, field_name):
 
     slug = do_slug(getattr(model, field_name, ''))
     if not slug:
-        slug = randstr(6)
+        slug = randstr()
     try:
         is_int = isinstance(int(slug), int)
     except ValueError:
@@ -33,7 +33,7 @@ def slugify(model, field_name):
     if is_int or exists:
         extra = model.pk
         if not extra:
-            extra = randstr(6)
+            extra = randstr()
 
         slug += u'-%s' % extra
 

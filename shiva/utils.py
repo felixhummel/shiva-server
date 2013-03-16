@@ -24,7 +24,7 @@ def slugify(text):
 
 
 def randstr(length=None):
-    if length < 1:
+    if isinstance(length, int) and length < 1:
         return ''
 
     digest = md5(str(random())).hexdigest()
