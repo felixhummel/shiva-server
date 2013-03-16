@@ -132,15 +132,23 @@ class Indexer(object):
             return True
 
         # here we have a perfectly tagged file
-        track.title = tagged_file.title
         artist_model = self.get_artist(tagged_file.artist)
         album_model = self.get_album(tagged_file.album, artist_model, tagged_file)
 
         if artist_model not in album_model.artists:
             album_model.artists.append(artist_model)
 
+        # essentials
+        track.title = tagged_file.title
         track.album = album_model
         track.artist = artist_model
+
+        # optional
+        track.bitrate = tagged_file.bitrate
+        track.file_size = tagged_file.size
+        track.length = tagged_file.length
+        track.number = tagged_file.track_number
+
         self.session.add(track)
 
         if self.verbose:
