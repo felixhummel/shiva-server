@@ -74,7 +74,11 @@ class TaggedFile(object):
     release_year = property(get_release_year, set_release_year)
 
     def get_bitrate(self):
-        return self.id3.info.bitrate
+        try:
+            return self.id3.info.bitrate
+        except AttributeError:
+            # flac says >>'StreamInfo' object has no attribute 'bitrate'<<
+            return None
 
     bitrate = property(get_bitrate)
 
